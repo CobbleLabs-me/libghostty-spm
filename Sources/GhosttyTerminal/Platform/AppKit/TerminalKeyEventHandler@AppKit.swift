@@ -69,6 +69,26 @@
                         surface.sendKeyEvent(input)
                     }
                 }
+
+                // A command arriving *alongside* committed text means the IME
+                // finished composing and handed the key back: Enter during a
+                // Hangul preedit commits the syllable via insertText AND calls
+                // doCommandBySelector(insertNewline:). Dropping it here is why
+                // Enter had to be pressed twice to run a command. Replay the
+                // key itself (no text — the text already went out above).
+                if let selector = interpretedCommandSelector {
+                    interpretedCommandSelector = nil
+                    if Self.shouldReplayInterpretedCommand(selector) {
+                        inputMethodHandler?.resetCommittedRun()
+                        sendKeyEvent(
+                            for: event,
+                            translationEvent: translationEvent,
+                            action: action,
+                            to: surface,
+                            includeText: false
+                        )
+                    }
+                }
                 return
             }
 

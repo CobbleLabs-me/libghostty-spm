@@ -9,8 +9,8 @@
     import AppKit
 
     extension AppTerminalView: @preconcurrency NSTextInputClient {
-        open func insertText(_ string: Any, replacementRange _: NSRange) {
-            inputHandler?.inputMethodHandler?.insertText(string)
+        open func insertText(_ string: Any, replacementRange: NSRange) {
+            inputHandler?.inputMethodHandler?.insertText(string, replacementRange: replacementRange)
         }
 
         open func setMarkedText(

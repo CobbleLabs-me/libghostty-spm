@@ -141,6 +141,9 @@
         }
 
         override open func mouseDown(with event: NSEvent) {
+            // A click can move the shell cursor (and pastes on some setups):
+            // the IME pseudo-document no longer describes what precedes it.
+            inputHandler?.inputMethodHandler?.resetCommittedRun()
             window?.makeFirstResponder(self)
             let (x, y) = mousePoint(from: event)
             let mods = TerminalInputModifiers(from: event.modifierFlags)

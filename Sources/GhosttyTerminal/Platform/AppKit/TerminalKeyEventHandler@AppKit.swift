@@ -56,6 +56,9 @@
             inputMethodHandler?.syncPreedit(clearIfNeeded: markedTextBefore)
 
             if let collected = inputMethodHandler?.finishCollectingText() {
+                // IME replacements (commit-then-replace composition after an
+                // input-source switch) become Delete presses ahead of the text.
+                inputMethodHandler?.flushPendingBackspaces()
                 var input = event.buildKeyInput(
                     action: action,
                     translationModifiers: translationEvent.modifierFlags
@@ -72,6 +75,10 @@
             if let selector = interpretedCommandSelector {
                 interpretedCommandSelector = nil
                 if Self.shouldReplayInterpretedCommand(selector) {
+                    // The key went to the terminal as a command (Enter,
+                    // Backspace, arrows…): the cursor moved somewhere the
+                    // IME pseudo-document cannot see.
+                    inputMethodHandler?.resetCommittedRun()
                     sendKeyEvent(
                         for: event,
                         translationEvent: translationEvent,
@@ -84,6 +91,11 @@
                 }
             }
 
+            // Raw fallback: the IME did not claim this key, so whatever went
+            // out is invisible to the pseudo-document.
+            if inputMethodHandler?.hasMarkedText != true, !markedTextBefore {
+                inputMethodHandler?.resetCommittedRun()
+            }
             sendKeyEvent(
                 for: event,
                 translationEvent: translationEvent,

@@ -42,6 +42,7 @@
 
         override open func becomeFirstResponder() -> Bool {
             let result = super.becomeFirstResponder()
+            inputHandler?.inputMethodHandler?.resetCommittedRun()
             core.setFocus(true)
             focusBridge.onFocusChange?(true)
             return result

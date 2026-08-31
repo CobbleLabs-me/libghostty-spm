@@ -59,14 +59,24 @@
                 // IME replacements (commit-then-replace composition after an
                 // input-source switch) become Delete presses ahead of the text.
                 inputMethodHandler?.flushPendingBackspaces()
-                var input = event.buildKeyInput(
-                    action: action,
-                    translationModifiers: translationEvent.modifierFlags
-                )
-                for text in collected {
-                    text.withCString { ptr in
-                        input.text = ptr
-                        surface.sendKeyEvent(input)
+                if TerminalIMEComposition.encodesByKey(characters: event.characters) {
+                    // Committed on Backspace/Return/an arrow…: the core would
+                    // drop text carried by that key (Backspace) or emit the
+                    // key's sequence instead of it. A Korean IME decomposing
+                    // 녕 → 녀 on Backspace lands here — send it as plain text.
+                    for text in collected {
+                        inputMethodHandler?.sendCommittedText(text)
+                    }
+                } else {
+                    var input = event.buildKeyInput(
+                        action: action,
+                        translationModifiers: translationEvent.modifierFlags
+                    )
+                    for text in collected {
+                        text.withCString { ptr in
+                            input.text = ptr
+                            surface.sendKeyEvent(input)
+                        }
                     }
                 }
 

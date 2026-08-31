@@ -37,11 +37,23 @@ enum TerminalIMEComposition {
     ) -> Bool {
         if hasMarkedText { return true }
         guard inputModeUsesComposition else { return false }
+        return !encodesByKey(characters: characters)
+    }
+
+    /// Whether the terminal core encodes this press by *key* rather than by
+    /// its text: Backspace, Return, Tab, Escape, arrows, function keys.
+    ///
+    /// Text an input method commits on such a key must not ride on the key
+    /// event. Ghostty drops any text attached to Backspace outright ("we
+    /// modified IME") and lets the key's own sequence displace it on the
+    /// others — the jamo a Korean IME peels off with Backspace would vanish
+    /// and the syllable go with it.
+    static func encodesByKey(characters: String?) -> Bool {
         guard
             let text = TerminalInputText.filteredFunctionKeyText(characters),
             !text.isEmpty
-        else { return false }
-        return !text.unicodeScalars.contains {
+        else { return true }
+        return text.unicodeScalars.contains {
             $0.value < 0x20 || $0.value == 0x7F
         }
     }

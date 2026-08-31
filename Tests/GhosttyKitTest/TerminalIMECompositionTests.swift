@@ -68,6 +68,18 @@ struct TerminalIMECompositionTests {
     }
 
     @Test
+    func `function keys are encoded by key, printable ones by text`() {
+        for characters in ["\u{7F}", "", "\r", "\t", "\u{1B}", "\u{F700}", "UIKeyInputUpArrow"] {
+            #expect(TerminalIMEComposition.encodesByKey(characters: characters))
+        }
+        // A Korean IME commits the peeled-off jamo while the key is Backspace;
+        // the jamo itself is text and the two must not be confused.
+        for characters in ["n", " ", "ㅇ", "녀", "1"] {
+            #expect(!TerminalIMEComposition.encodesByKey(characters: characters))
+        }
+    }
+
+    @Test
     func `direct input modes never defer`() {
         for characters in ["n", " ", "\r", ""] {
             #expect(!TerminalIMEComposition.shouldDeferKey(

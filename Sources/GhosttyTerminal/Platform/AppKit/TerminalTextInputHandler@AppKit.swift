@@ -141,8 +141,8 @@
 
         /// Committed text as a key event (keycode 0), mirroring upstream
         /// Ghostty's `committedTextAction`.
-        private func sendCommittedText(_ text: String) {
-            guard let surface = view?.surface else { return }
+        func sendCommittedText(_ text: String) {
+            guard !text.isEmpty, let surface = view?.surface else { return }
             var input = ghostty_input_key_s()
             input.action = GHOSTTY_ACTION_PRESS
             input.keycode = 0

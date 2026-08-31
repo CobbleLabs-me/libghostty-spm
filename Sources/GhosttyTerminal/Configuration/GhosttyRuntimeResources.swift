@@ -10,7 +10,9 @@ public enum GhosttyRuntimeResources {
     /// The package-bundled Ghostty resource directory.
     ///
     /// Ghostty expects shell integration below this directory and its compiled
-    /// terminfo database in a sibling `terminfo` directory.
+    /// terminfo database in a sibling `terminfo` directory. `themes/` is the
+    /// bundled Ghostty theme set, so a config's `theme = <name>` resolves
+    /// without a Ghostty.app install.
     public static var directoryURL: URL? {
         Bundle.module.url(forResource: "Ghostty", withExtension: nil)
     }

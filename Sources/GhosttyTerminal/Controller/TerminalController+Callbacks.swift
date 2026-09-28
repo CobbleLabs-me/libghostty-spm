@@ -40,7 +40,11 @@ private enum TerminalCallbacks {
             bridge.handleAction(action)
         }
 
-        return false
+        // Claim open_url: the bridge always opens it (via the delegate, or
+        // itself when nobody listens). Returning false made Ghostty fall back
+        // to its own `open`, so every link opened twice — once where the host
+        // app routed it and once in the system default app.
+        return action.tag == GHOSTTY_ACTION_OPEN_URL
     }
 
     static func closeSurface(

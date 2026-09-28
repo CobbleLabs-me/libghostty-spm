@@ -7,6 +7,11 @@
 
 import Foundation
 import GhosttyKit
+#if canImport(AppKit)
+    import AppKit
+#elseif canImport(UIKit)
+    import UIKit
+#endif
 
 /// Dispatches C runtime callbacks to a ``TerminalSurfaceViewDelegate``.
 ///
@@ -113,8 +118,12 @@ final class TerminalCallbackBridge {
                 .actions,
                 "callback action=open_url kind=\(kind) url=\(TerminalDebugLog.describe(url))"
             )
-            (delegate as? any TerminalSurfaceOpenURLDelegate)?
-                .terminalDidRequestOpenURL(url, kind: kind)
+            if let opener = delegate as? any TerminalSurfaceOpenURLDelegate {
+                opener.terminalDidRequestOpenURL(url, kind: kind)
+            } else {
+                // The action callback claimed this URL, so open it here.
+                Self.openWithSystem(url)
+            }
 
         case GHOSTTY_ACTION_MOUSE_OVER_LINK:
             let payload = action.action.mouse_over_link
@@ -190,5 +199,16 @@ final class TerminalCallbackBridge {
                 completion: completion
             )
         )
+    }
+
+    /// Mirrors Ghostty's own fallback for hosts that don't handle open_url.
+    private static func openWithSystem(_ raw: String) {
+        let url = raw.hasPrefix("/") ? URL(fileURLWithPath: raw) : URL(string: raw)
+        guard let url else { return }
+        #if canImport(AppKit)
+            NSWorkspace.shared.open(url)
+        #elseif canImport(UIKit)
+            UIApplication.shared.open(url)
+        #endif
     }
 }
